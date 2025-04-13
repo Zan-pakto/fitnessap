@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 session_start();
 
 $host = 'localhost';
-$db = 'fitnessdb';
+$db = 'fitness_db';
 $user = 'root';
 $pass = '';
 $conn = new mysqli($host, $user, $pass, $db);
@@ -36,7 +36,9 @@ if (isset($_POST['signup'])) {
         $insert->bind_param("sss", $name, $email, $password);
         if ($insert->execute()) {
             $_SESSION['user'] = $name;
-            header("Location: sat6.html");
+            $_SESSION['user_id'] = $conn->insert_id;
+            $_SESSION['logged_in'] = true;
+            header("Location: index.php");
             exit();
         } else {
             echo "<script>alert('Signup failed. Try again.'); window.location.href='login.html';</script>";
@@ -55,8 +57,17 @@ if (isset($_POST['signup'])) {
         $user = $res->fetch_assoc();
         if (password_verify($password, $user['password'])) {
             $_SESSION['user'] = $user['name'];
-            header("Location: sat6.html");
-            exit();
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['logged_in'] = true;
+            
+            // Ensure headers haven't been sent
+            if (!headers_sent()) {
+                header("Location: index.php");
+                exit();
+            } else {
+                echo "<script>window.location.href='index.php';</script>";
+                exit();
+            }
         } else {
             echo "<script>alert('Incorrect password.'); window.location.href='login.html';</script>";
         }
